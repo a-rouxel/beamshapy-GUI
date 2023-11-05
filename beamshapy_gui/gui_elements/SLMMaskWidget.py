@@ -6,7 +6,7 @@ import numpy as np
 from LightPipes import mm
 import os
 import re
-from utils import save_mask, normalize, discretize_array, crop_and_save_as_bmp, translate, correct_modulation_values
+from beamshapy_gui.utils import save_mask, normalize, discretize_array, crop_and_save_as_bmp, translate, correct_modulation_values
 class MaskParamsWidget(QWidget):
 
     maskGenerated = pyqtSignal(np.ndarray,np.ndarray)
@@ -26,11 +26,9 @@ class MaskParamsWidget(QWidget):
         self.mask_type_selector.addItem("Vortex")
         self.mask_type_selector.addItem("ϕ target field")
         self.mask_type_selector.addItem("modulation amplitude")
-        # self.mask_type_selector.addItem("Grating")
-        self.mask_type_selector.addItem("Rect Amplitude")
+        self.mask_type_selector.addItem("Rectangle")
         self.mask_type_selector.addItem("Phase Jump")
         self.mask_type_selector.addItem("Phase Reversal")
-        self.mask_type_selector.addItem("Weights Sinc")
         self.mask_type_selector.addItem("Custom h5 Mask")
         self.mask_type_selector.currentIndexChanged.connect(self.update_mask_params)
 
@@ -141,74 +139,77 @@ class MaskParamsWidget(QWidget):
 
         # Generate the mask
         if mask_type == "Grating":
-            mask = self.beam_shaper.generate_mask(mask_type=mask_type,
+            mask = self.beam_shaper.mask_generator.design_mask(mask_type=mask_type,
                                                   period=int(self.period.text()),
                                                   orientation=self.orientation.currentText())
 
         elif mask_type =="Vortex":
 
-            mask = self.beam_shaper.generate_mask(mask_type=mask_type,
+            mask = self.beam_shaper.mask_generator.design_mask(mask_type=mask_type,
                                                   charge=int(self.charge.text()))
 
         elif mask_type == "Wedge":
 
-            mask = self.beam_shaper.generate_mask(mask_type=mask_type,
+            mask = self.beam_shaper.mask_generator.design_mask(mask_type=mask_type,
                                                   position=float(self.position.text())*mm,
                                                   angle = np.radians(float(self.angle_wedge.text())))
         elif mask_type == "ϕ target field":
 
             try:
                 self.beam_shaper.inverse_fourier_target_field
-                mask = self.beam_shaper.generate_mask(mask_type=mask_type)
-            except:
-                return
+                mask = self.beam_shaper.mask_generator.generate_target_mask(mask_type=mask_type)
+            except Exception as error:
+                # handle the exception
+                print("An exception occurred:", error)
 
 
         elif mask_type == "modulation amplitude":
 
             try:
                 self.beam_shaper.inverse_fourier_target_field
-                mask = self.beam_shaper.generate_mask(mask_type=mask_type,
+                mask = self.beam_shaper.mask_generator.generate_target_mask(mask_type=mask_type,
                                                       amplitude_factor=float(self.amplitude_factor.text()),
                                                       threshold=float(self.threshold.text()))
-            except:
-                return
+            except Exception as error:
+                # handle the exception
+                print("An exception occurred:", error)
 
         elif mask_type == "Gaussian":
 
-            try:
-                mask = self.beam_shaper.generate_mask(mask_type=mask_type,
-                                                      sigma_x=float(self.sigma_x.text()),
-                                                      sigma_y=float(self.sigma_y.text()))
-            except:
-                return
+                    try:
+                        mask = self.beam_shaper.mask_generator.design_mask(mask_type=mask_type,
+                                                              sigma_x=float(self.sigma_x.text()),
+                                                              sigma_y=float(self.sigma_y.text()))
+                    except Exception as error:
+                        # handle the exception
+                        print("An exception occurred:", error)
 
 
-        elif mask_type == "Rect Amplitude":
+        elif mask_type == "Rectangle":
 
-            mask = self.beam_shaper.generate_mask(mask_type=mask_type,
+            mask = self.beam_shaper.mask_generator.design_mask(mask_type=mask_type,
                                                   angle = np.radians(float(self.angle.text())),
                                                   width = float(self.width.text())*mm,
                                                   height = float(self.height.text())*mm)
         elif mask_type == "Phase Jump":
 
-            mask = self.beam_shaper.generate_mask(mask_type=mask_type,
+            mask = self.beam_shaper.mask_generator.design_mask(mask_type=mask_type,
                                                   orientation = self.orientation_phase_jump.currentText(),
                                                   position = float(self.position_phase_jump.text())*mm)
 
 
         elif mask_type == "Phase Reversal":
-            mask = self.beam_shaper.generate_mask(mask_type=mask_type,
+            mask = self.beam_shaper.mask_generator.design_mask(mask_type=mask_type,
                                                   sigma_x=float(self.sigma_x.text()),
                                                   sigma_y=float(self.sigma_y.text()))
 
-        elif mask_type == "Weights Sinc":
-            mask = self.beam_shaper.generate_mask(mask_type=mask_type,threshold=float(self.threshold.text()))
+        # elif mask_type == "Weights Sinc":
+        #     mask = self.beam_shaper.mask_generator.generate_mask(mask_type=mask_type,threshold=float(self.threshold.text()))
 
         elif mask_type == "Custom h5 Mask":
             # Open a file dialog to select the mask
             file_path = self.file_path.text()
-            mask = self.beam_shaper.generate_mask(mask_type=mask_type,
+            mask = self.beam_shaper.mask_generator.design_mask(mask_type=mask_type,
                                            mask_path=file_path)
         else :
             raise ValueError("Invalid mask type")
@@ -283,7 +284,7 @@ class MaskParamsWidget(QWidget):
             self.sigma_x.textChanged.connect(self.enable_generate_mask_button)
             self.sigma_y.textChanged.connect(self.enable_generate_mask_button)
 
-        if self.mask_type_selector.currentText() == "Rect Amplitude":
+        if self.mask_type_selector.currentText() == "Rectangle":
             self.angle = QLineEdit()
             self.angle.setText(str(0))
             self.width = QLineEdit()
@@ -340,13 +341,6 @@ class MaskParamsWidget(QWidget):
             self.sigma_x.textChanged.connect(self.enable_generate_mask_button)
             self.sigma_y.textChanged.connect(self.enable_generate_mask_button)
 
-
-        if self.mask_type_selector.currentText() == "Weights Sinc":
-            self.threshold = QLineEdit()
-            self.threshold.setText(str(0.01))
-            self.inner_layout.addRow("threshold [no units]", self.threshold)
-
-            self.threshold.textChanged.connect(self.enable_generate_mask_button)
 
         # Custom H5 Mask parameters: file path
         elif self.mask_type_selector.currentText() == "Custom h5 Mask":
@@ -502,7 +496,7 @@ class SLMMaskWidget(QWidget):
 
         # Create QLineEdit for user input
         self.operation_input = QLineEdit(self)
-        self.operation_input.setPlaceholderText("ex: warp ( M1 + M2 ) * M3")
+        self.operation_input.setPlaceholderText("ex: wrap ( M1 + M2 ) * M3")
 
         self.discretize_checkbox = QCheckBox("Discretize")
 
@@ -610,16 +604,18 @@ class SLMMaskWidget(QWidget):
         self.logger.info("  Generate SLM mask")
         self.logger.info("=" * 30 )
 
+        self.beam_shaper.mask_generator.generate_correction_tab()
+
         # Get the operation from the QLineEdit
         operation = self.operation_input.text()
 
         # Define the allowed operations and masks
-        allowed_ops = {"+", "-", "*", "/", "(", ")", "warp","correct"}  # Add your custom operation name here
+        allowed_ops = {"+", "-", "*", "/", "(", ")", "wrap","correct"}  # Add your custom operation name here
         allowed_masks = set(self.masks_dict.keys())  # Dynamically get the list of current masks
 
         # Custom operations dictionary
         operations = {
-            "warp": lambda x: np.angle(np.exp(1j * x)),  # define your warp function here
+            "wrap": lambda x: np.angle(np.exp(1j * x)),  # define your wrap function here
             "correct": lambda x: correct_modulation_values(x,self.beam_shaper.correction_a_values,self.beam_shaper.correction_tab)
         }
 
@@ -656,10 +652,8 @@ class SLMMaskWidget(QWidget):
 
             pass
 
-
-        if self.masks_dict["M1"] == "":
-
-            self.logger.info(f"  Evaluate operation : M1 mask == None Type.. ✘")
+        if self.masks_dict["M1"].size == 0:
+            self.logger.info(f"  Evaluate operation : M1 mask is an empty array.. ✘")
             return
 
         # Initialize the resulting mask as an empty mask

@@ -4,8 +4,10 @@ from PyQt5.QtWidgets import (QTabWidget,QHBoxLayout, QPushButton, QFileDialog,
 from PyQt5.QtCore import Qt,QThread, pyqtSignal, pyqtSlot
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+
 from LightPipes import Field, Phase, Intensity
-from beamshapy import *
+import matplotlib.pyplot as plt
+from beamshapy_gui.utils import *
 
 
 class InputBeamIntensityDisplay(QWidget):
@@ -75,18 +77,19 @@ class Worker(QThread):
     finished_generate_input_beam = pyqtSignal(Field)
     finished_generate_sampling = pyqtSignal(bool)
 
-    def __init__(self, input_beam_editor,simulation_editor,beam_shaper,logger=None):
+    def __init__(self, input_beam_editor,simulation_editor,optical_system_editor,beam_shaper,logger=None):
         super().__init__()
         self.logger = logger
         self.input_beam_config = input_beam_editor.config
         self.simulation_editor = simulation_editor
+        self.optical_system_config = optical_system_editor.config
         self.simulation_config = simulation_editor.config
         self.beam_shaper = beam_shaper
 
     def run(self):
         # Put your analysis here
 
-        self.beam_shaper.generate_sampling(self.simulation_config,self.input_beam_config)
+        self.beam_shaper.generate_sampling(self.simulation_config,self.input_beam_config,self.optical_system_config)
         self.finished_generate_sampling.emit(True)
         self.simulation_editor.update_nb_of_samples(self.beam_shaper.nb_of_samples)
         input_field = self.beam_shaper.generate_input_beam(self.input_beam_config)
@@ -95,7 +98,7 @@ class Worker(QThread):
 
 
 class InputBeamWidget(QWidget):
-    def __init__(self, beam_shaper, infos_editor,simulation_editor,input_beam_editor,logger=None):
+    def __init__(self, beam_shaper, infos_editor,simulation_editor,optical_system_editor,input_beam_editor,logger=None):
         super().__init__()
 
         self.logger = logger
@@ -104,6 +107,7 @@ class InputBeamWidget(QWidget):
         self.beam_shaper = beam_shaper
         self.infos_editor = infos_editor
         self.simulation_editor = simulation_editor
+        self.optical_system_editor = optical_system_editor
         self.input_beam_editor = input_beam_editor
 
         # Create the result display widget (tab widget in this case)
@@ -154,6 +158,7 @@ class InputBeamWidget(QWidget):
         # Create a QVBoxLayout for the editors
         self.editor_layout = QVBoxLayout()
         self.editor_layout.addWidget(self.infos_editor)
+        self.editor_layout.addWidget(self.optical_system_editor)
         self.editor_layout.addWidget(self.simulation_editor)
         self.editor_layout.addWidget(self.input_beam_editor)
 
@@ -193,9 +198,11 @@ class InputBeamWidget(QWidget):
         self.input_beam_editor.get_config()
         self.logger.info("  Step 2: Updating simulation config... ✔")
         self.simulation_editor.get_config()
+        self.logger.info("  Step 3: Updating optical system config... ✔")
+        self.optical_system_editor.get_config()
 
         # Create the worker and connect the signals
-        self.worker = Worker(self.input_beam_editor, self.simulation_editor, self.beam_shaper,self.logger)
+        self.worker = Worker(self.input_beam_editor, self.simulation_editor, self.optical_system_editor, self.beam_shaper,self.logger)
         self.worker.finished_generate_sampling.connect(self.state_beam_shaper_sampling_generated)
         self.worker.finished_generate_input_beam.connect(self.display_input_beam_intensity)
         self.worker.finished_generate_input_beam.connect(self.display_input_beam_phase)

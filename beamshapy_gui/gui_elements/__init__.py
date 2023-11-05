@@ -1,6 +1,7 @@
 from .InputBeamWidget import InputBeamWidget
 from .InputBeamEditorWidget import InputBeamEditorWidget
 from .SimulationConfigEditorWidget import SimulationConfigEditorWidget
+from .OpticalSystemEditorWidget import OpticalSystemEditorWidget
 from .SLMMaskWidget import SLMMaskWidget
 from .InfosEditorWidget import InfosEditorWidget
 from .FourierPlaneDetectionWidget import FourierPlaneDetectionWidget

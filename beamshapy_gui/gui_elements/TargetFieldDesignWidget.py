@@ -10,7 +10,7 @@ import numpy as np
 from LightPipes import mm, Field, Intensity, Phase
 import os
 import re
-from utils import save_target_amplitude, save_inverse_fourier_field,normalize, discretize_array, translate
+from beamshapy_gui.utils import save_target_amplitude, save_inverse_fourier_field,normalize, discretize_array, translate
 import numpy as np
 import matplotlib as plt
 
@@ -119,7 +119,7 @@ class Worker(QThread):
         input_field = self.beam_shaper.input_beam
         inverse_fourier_target_field = self.beam_shaper.inverse_fourier_transform(self.complex_amplitude)
 
-        inverse_fourier_target_field = self.beam_shaper.normalize_both_field_intensity(inverse_fourier_target_field)
+        inverse_fourier_target_field = self.beam_shaper. normalize_field_power(inverse_fourier_target_field,norm_value=self.beam_shaper.input_power)
 
         self.finished_calculation_inverse_fourier_transform.emit(self.beam_shaper.x_array_in,inverse_fourier_target_field,input_field)
 
@@ -253,25 +253,25 @@ class TargetAmplitudeParamsWidget(QWidget):
 
         # Generate the mask
         if target_amplitude_type == "Rectangle":
-            target_amplitude = self.beam_shaper.generate_target_amplitude(amplitude_type=target_amplitude_type,
+            target_amplitude = self.beam_shaper.amplitude_generator.generate_target_amplitude(amplitude_type=target_amplitude_type,
                                                                           angle = np.radians(float(self.angle.text())),
                                                                           width = float(self.width.text())*mm,
                                                                           height = float(self.height.text())*mm)
         elif target_amplitude_type == "Wedge":
 
-            target_amplitude = self.beam_shaper.generate_target_amplitude(amplitude_type=target_amplitude_type,
+            target_amplitude = self.beam_shaper.amplitude_generator.generate_target_amplitude(amplitude_type=target_amplitude_type,
                                                   position=float(self.position.text())*mm,
                                                   angle = np.radians(float(self.angle_wedge.text())))
 
         elif target_amplitude_type == "Sinus":
 
-            target_amplitude = self.beam_shaper.generate_target_amplitude(amplitude_type=target_amplitude_type,
+            target_amplitude = self.beam_shaper.amplitude_generator.generate_target_amplitude(amplitude_type=target_amplitude_type,
                                                                           period=float(self.period.text())*mm,
                                                                           angle = np.radians(float(self.angle.text())))
 
         elif target_amplitude_type == "Cosinus":
 
-            target_amplitude = self.beam_shaper.generate_target_amplitude(amplitude_type=target_amplitude_type,
+            target_amplitude = self.beam_shaper.amplitude_generator.generate_target_amplitude(amplitude_type=target_amplitude_type,
                                                                           period=float(self.period.text()) * mm,
                                                                           angle = np.radians(float(self.angle.text())))
 
@@ -280,7 +280,7 @@ class TargetAmplitudeParamsWidget(QWidget):
             # Open a file dialog to select the mask
             file_path = self.file_path.text()
             scale_size = self.scale_size.text()
-            target_amplitude = self.beam_shaper.generate_target_amplitude(amplitude_type=target_amplitude_type,
+            target_amplitude = self.beam_shaper.amplitude_generator.generate_target_amplitude(amplitude_type=target_amplitude_type,
                                                                            amplitude_path=file_path,
                                                                             scale_factor=float(self.scale_size.text()))
         else :
@@ -530,7 +530,7 @@ class TargetFieldDesignWidget(QWidget):
 
         # Create QLineEdit for user input
         self.operation_input = QLineEdit(self)
-        self.operation_input.setPlaceholderText("ex: warp ( A1 + A2 ) * A3")
+        self.operation_input.setPlaceholderText("ex: wrap ( A1 + A2 ) * A3")
 
         self.discretize_checkbox = QCheckBox("Discretize")
 
@@ -685,12 +685,12 @@ class TargetFieldDesignWidget(QWidget):
             return
 
         # Define the allowed operations and amplitudes
-        allowed_ops = {"+", "-", "*", "/", "(", ")", "warp"}  # Add your custom operation name here
+        allowed_ops = {"+", "-", "*", "/", "(", ")", "wrap"}  # Add your custom operation name here
         allowed_target_amplitudes = set(self.target_amplitudes_dict.keys())  # Dynamically get the list of current amplitudes
 
         # Custom operations dictionary
         operations = {
-            "warp": lambda x: np.angle(np.exp(1j * x))  # define your warp function here
+            "wrap": lambda x: np.angle(np.exp(1j * x))  # define your wrap function here
         }
 
         # Define the regex pattern to split operation into parts

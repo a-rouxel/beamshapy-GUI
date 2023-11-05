@@ -7,10 +7,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from PyQt5.QtWidgets import QTabWidget, QVBoxLayout, QWidget, QComboBox
-from LightPipes import mm
 from PyQt5.QtWidgets import QMessageBox
 
-from utils import *
+from beamshapy_gui.utils import *
 class DisplayWidget(QWidget):
     def __init__(self, beam_shaper):
         super().__init__()
@@ -226,7 +225,7 @@ class DisplayWidget(QWidget):
         zoomed_intensity = self.intensity[np.ix_(y_indices, x_indices)]
         self.zoomedIntensity_power_cropped = np.sum(np.sum(zoomed_intensity))
         self.zoomedIntensity_power_total = np.sum(np.sum(self.intensity))
-        self.percentage = self.zoomedIntensity_power_cropped / self.beam_shaper.power * 100
+        self.percentage = self.zoomedIntensity_power_cropped / self.beam_shaper.input_power * 100
         self.maskZoomLabel.setText(
             f'POWER : Cropped: {self.zoomedIntensity_power_cropped}, Total: {self.beam_shaper.power}, Percentage: {self.percentage}')
     def onclick_phase(self, event):
@@ -306,13 +305,13 @@ class PropagatedImagePlaneDisplay(DisplayWidget):
 #         # Create Fourier Plane QFormLayout
 #         fourier_plane_layout = QFormLayout()
 #
-#         self.power_inputfield = QLineEdit()
-#         self.power_inputfield.setReadOnly(True)  # The dimensions should be read-only
+#         self.input_power_inputfield = QLineEdit()
+#         self.input_power_inputfield.setReadOnly(True)  # The dimensions should be read-only
 #
-#         self.power_fourierfield = QLineEdit()
-#         self.power_fourierfield.setReadOnly(True)  # The dimensions should be read-only
-#         self.power_filteredfourierfield = QLineEdit()
-#         self.power_filteredfield.setReadOnly(True)  # The dimensions should be read-only
+#         self.input_power_fourierfield = QLineEdit()
+#         self.input_power_fourierfield.setReadOnly(True)  # The dimensions should be read-only
+#         self.input_power_filteredfourierfield = QLineEdit()
+#         self.input_power_filteredfield.setReadOnly(True)  # The dimensions should be read-only
 #
 #         fourier_plane_layout.addRow("Spatial Filter type", self.spatial_filter_type)
 #         fourier_plane_layout.addRow("radius [in um]", self.spatial_filter_radius)
