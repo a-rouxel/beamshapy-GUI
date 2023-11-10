@@ -22,8 +22,8 @@ jobs:
     # Add any other dependencies your project needs
 
     - name: Compile with Nuitka
-      run: nuitka main.py --show-progress --onefile --debug --enable-plugin=pyqt5  --include-data-file=./logo_beam_shaper.png=./icon/logo_beam_shaper.png
-      # Replace 'your_script.py' with the path to your main Python file
+      run: python -m nuitka main.py --show-progress --onefile --debug --enable-plugin=pyqt5  --include-data-file=./logo_beam_shaper.png=./icon/logo_beam_shaper.png
+
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
