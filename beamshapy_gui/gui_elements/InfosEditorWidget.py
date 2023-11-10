@@ -5,10 +5,12 @@ import yaml
 
 
 class InfosEditorWidget(QWidget):
-    def __init__(self, initial_infos_config_path=None,logger=None):
+    def __init__(self, infos_config=None,logger=None):
         super().__init__()
         self.logger = logger
-        self.initial_config_file = initial_infos_config_path
+        
+        self.config = infos_config
+        
 
         # Create a QScrollArea
         scroll = QScrollArea(self)
@@ -45,15 +47,8 @@ class InfosEditorWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.addWidget(scroll)
 
-        # Load the initial configuration file if one was provided
-        if self.initial_config_file is not None:
-            self.load_config(self.initial_config_file)
-
-    def load_config(self, file_name):
-        with open(file_name, 'r') as file:
-            self.config = yaml.safe_load(file)
-        # Call a method to update the GUI with the loaded config
         self.update_config()
+
 
     def get_config(self):
 
@@ -67,6 +62,5 @@ class InfosEditorWidget(QWidget):
 
     def update_config(self):
         # This method should update your QLineEdit and QSpinBox widgets with the loaded config.
-
         self.simulation_name.setText(str(self.config['simulation name']))
         self.results_directory.setText(str(self.config['results directory']))

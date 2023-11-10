@@ -1,0 +1,32 @@
+name: Nuitka Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # or any other OS you prefer
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'  # Specify your Python version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install nuitka  # Install Nuitka
+
+    # Add any other dependencies your project needs
+
+    - name: Compile with Nuitka
+      run: nuitka main.py --show-progress --onefile --debug --enable-plugin=pyqt5  --include-data-file=./logo_beam_shaper.png=./icon/logo_beam_shaper.png
+      # Replace 'your_script.py' with the path to your main Python file
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: Compiled-App
+        path: your_script.dist/your_script  # Adjust the path to the compiled binary

@@ -10,7 +10,7 @@ from beamshapy_gui.gui_elements import OpticalSystemEditorWidget
 from beamshapy_gui.gui_elements import SLMMaskWidget
 from beamshapy_gui.gui_elements import InfosEditorWidget
 from beamshapy_gui.gui_elements import FourierPlaneDetectionWidget
-
+from beamshapy_gui.utils import load_all_configs
 from beamshapy import BeamShaper
 
 import os
@@ -51,11 +51,12 @@ class MainWindow(QMainWindow):
         # You can control the logging level
         self.logger.setLevel(logging.INFO)
 
+        configs = load_all_configs()
 
-        self.infos_editor = InfosEditorWidget(initial_infos_config_path="./config/infos.yml", logger=self.logger)
-        self.input_beam_editor = InputBeamEditorWidget(initial_input_beam_config_path="./config/input_beam.yml", logger=self.logger)
-        self.simulation_editor = SimulationConfigEditorWidget(simulation_config_path="./config/simulation.yml", logger=self.logger)
-        self.optical_system_editor = OpticalSystemEditorWidget(optical_system_config_path="./config/optical_system.yml", logger=self.logger)
+        self.infos_editor = InfosEditorWidget(infos_config=configs["infos"], logger=self.logger)
+        self.input_beam_editor = InputBeamEditorWidget(input_beam_config=configs["input_beam"], logger=self.logger)
+        self.simulation_editor = SimulationConfigEditorWidget(simulation_config=configs["simulation"], logger=self.logger)
+        self.optical_system_editor = OpticalSystemEditorWidget(optical_system_config=configs["optical_system"], logger=self.logger)
 
 
         self.BeamShaper = BeamShaper(self.simulation_editor.get_config(),
@@ -73,58 +74,41 @@ class MainWindow(QMainWindow):
                                                  self.simulation_editor,
                                                  self.optical_system_editor,
                                                  self.input_beam_editor,logger=self.logger)
-        # self.input_beam_dock = QDockWidget("Input Beam")
-        # self.input_beam_dock.setWidget(self.input_beam_widget)
-        # self.addDockWidget(Qt.RightDockWidgetArea, self.input_beam_dock)
+
 
         self.target_amplitude_widget = TargetFieldDesignWidget(self.BeamShaper,
                                                                self.infos_editor,
                                                                self.simulation_editor,
                                                                target_target_amplitude_config_path="beamshapy/beamshapy/config/target_amplitude.yml",
                                                                logger=self.logger)
-        # self.target_amplitude_dock = QDockWidget("Target Amplitude")
-        # self.target_amplitude_dock.setWidget(self.target_amplitude_widget)
-        # self.addDockWidget(Qt.RightDockWidgetArea, self.target_amplitude_dock)
+
 
         self.SLM_mask_widget = SLMMaskWidget(self.BeamShaper,
                                              self.infos_editor,
                                              self.simulation_editor,
                                              slm_mask_config_path="beamshapy/beamshapy/config/slm_mask.yml",
                                              logger = self.logger)
-        # self.SLM_mask_dock = QDockWidget("SLM Masks")
-        # self.SLM_mask_dock.setWidget(self.SLM_mask_widget)
-        # self.addDockWidget(Qt.RightDockWidgetArea, self.SLM_mask_dock)
+
         #
         self.fourier_plane_detection_widget = FourierPlaneDetectionWidget(self,self.BeamShaper,
                                                                           self.infos_editor,
                                                                          self.SLM_mask_widget,
                                                                          )
-        # self.fourier_plane_detection_dock = QDockWidget("Detection")
 
-        # Step 2: Take the widgets that are set within each QDockWidget and add them as tabs
         self.tab_widget.addTab(self.input_beam_widget, "Input Beam")
         self.tab_widget.addTab(self.target_amplitude_widget, "Target Amplitude")
         self.tab_widget.addTab(self.SLM_mask_widget, "SLM Masks")
         self.tab_widget.addTab(self.fourier_plane_detection_widget, "Detection")
 
-        # Optionally, you can now remove the QDockWidget instances as they are no longer needed.
-        # If you still want them to be dockable, skip the removal.
-
-        # Step 3: Set the QTabWidget as the central widget of the main window
         self.setCentralWidget(self.tab_widget)
 
-        # Add the new logging box widget to the layout
         self.log_dock = QDockWidget("Log Messages")
-        # logTextBox.widget.setMaximumHeight(150)  # Replace 150 with the desired minimum height in pixels
         self.log_dock.setWidget(logTextBox.widget)
 
         self.addDockWidget(Qt.BottomDockWidgetArea, self.log_dock)
 
 
         self.setGeometry(100, 100, 1000, 900)
-
-
-
 
 
 if __name__ == '__main__':

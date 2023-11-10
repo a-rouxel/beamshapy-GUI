@@ -1,17 +1,12 @@
 from PyQt5.QtWidgets import (QLineEdit, QComboBox,QFormLayout, QGroupBox, QScrollArea,
                              QVBoxLayout, QCheckBox, QSpinBox, QWidget)
-import yaml
-
-
-
 
 class InputBeamEditorWidget(QWidget):
-    def __init__(self,initial_input_beam_config_path=None,logger=None):
+    def __init__(self,input_beam_config=None,logger=None):
         super().__init__()
         self.logger = logger
-        self.initial_config_file = initial_input_beam_config_path
 
-
+        self.config = input_beam_config
         # Create a QScrollArea
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
@@ -64,14 +59,6 @@ class InputBeamEditorWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.addWidget(scroll)
 
-        # Load the initial configuration file if one was provided
-        if self.initial_config_file is not None:
-            self.load_config(self.initial_config_file)
-
-    def load_config(self, file_name):
-        with open(file_name, 'r') as file:
-            self.config = yaml.safe_load(file)
-        # Call a method to update the GUI with the loaded config
         self.update_config()
 
     def get_config(self):

@@ -1,18 +1,16 @@
 from PyQt5.QtWidgets import (QLineEdit,QFormLayout, QGroupBox, QScrollArea,
                              QVBoxLayout, QWidget)
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-import yaml
 
 
 class OpticalSystemEditorWidget(QWidget):
 
     # sampling_generated = pyqtSignal(int)
 
-    def __init__(self, optical_system_config_path=None,logger=None):
+    def __init__(self, optical_system_config=None,logger=None):
 
         super().__init__()
         self.logger = logger
-        self.initial_config_file = optical_system_config_path
+        self.config = optical_system_config
 
         # Create a QScrollArea
         scroll = QScrollArea(self)
@@ -45,14 +43,9 @@ class OpticalSystemEditorWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.addWidget(scroll)
 
-        # Load the initial configuration file if one was provided
-        if self.initial_config_file is not None:
-            self.load_config(self.initial_config_file)
-    def load_config(self, file_name):
-        with open(file_name, 'r') as file:
-            self.config = yaml.safe_load(file)
-        # Call a method to update the GUI with the loaded config
         self.update_config()
+
+
 
     def get_config(self):
 
@@ -64,12 +57,6 @@ class OpticalSystemEditorWidget(QWidget):
         return config
 
     def update_config(self):
-        # This method should update your QLineEdit and QSpinBox widgets with the loaded config.
-
         self.focal_length.setText(str(self.config['focal length']))
 
-    # @pyqtSlot(int)
-    # def update_nb_of_samples(self, focal_length):
-    #     # Update the GUI in this slot function, which is called from the main thread
-    #     self.focal_length.setText(str(focal_length))
 

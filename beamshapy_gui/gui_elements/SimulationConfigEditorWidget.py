@@ -1,16 +1,15 @@
 from PyQt5.QtWidgets import (QLineEdit,QFormLayout, QGroupBox, QScrollArea,
                              QVBoxLayout, QWidget)
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-import yaml
 
 
 class SimulationConfigEditorWidget(QWidget):
     sampling_generated = pyqtSignal(int)
-    def __init__(self, simulation_config_path=None,logger=None):
+    def __init__(self, simulation_config=None,logger=None):
 
         super().__init__()
         self.logger = logger
-        self.initial_config_file = simulation_config_path
+        self.config = simulation_config
 
         # Create a QScrollArea
         scroll = QScrollArea(self)
@@ -60,15 +59,9 @@ class SimulationConfigEditorWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.addWidget(scroll)
 
-        # Load the initial configuration file if one was provided
-        if self.initial_config_file is not None:
-            self.load_config(self.initial_config_file)
-
-    def load_config(self, file_name):
-        with open(file_name, 'r') as file:
-            self.config = yaml.safe_load(file)
-        # Call a method to update the GUI with the loaded config
         self.update_config()
+
+
 
     def get_config(self):
 

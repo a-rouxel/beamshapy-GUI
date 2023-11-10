@@ -48,6 +48,21 @@ def load_yaml_config(file_path):
         config = yaml.safe_load(file)
     return config
 
+def load_all_configs():
+    """
+    Load all YAML configuration files in a directory.
+
+    :param config_directory: Path to the directory containing the YAML files
+    :return: A dictionary containing the configuration data
+    """
+    config_directory = "./beamshapy_gui/config/"
+    configs = {}
+    for file_name in os.listdir(config_directory):
+        if file_name.endswith(".yml"):
+            config_name = os.path.splitext(file_name)[0]
+            configs[config_name] = load_yaml_config(os.path.join(config_directory, file_name))
+    return configs
+
 def save_frames_to_h5(frames_data, result_directory, file_name="frames.h5"):
     """
     Save a list of images of timestamps (frames) to an h5 file.
