@@ -1,40 +1,32 @@
-name: Nuitka Build
-
-on: [push, pull_request]
-
 jobs:
   build:
-    runs-on: ubuntu-latest  # or any other OS you prefer
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'  # Specify your Python version
     - name: Set up Miniconda
       uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
-        python-version: 3.10  # Specify the Python version
-        environment-file: env.yml  # If you have an environment file
-        activate-environment: beamshapy-gui  # Name of the environment to activate
+        python-version: 3.10
+        environment-file: environment.yml
+        activate-environment: beamshapy-gui
 
-
-    - name: Install dependencies
+    - name: Activate Conda Environment and Install Nuitka
       run: |
+        eval "$(conda shell.bash hook)"
+        conda activate beamshapy-gui
         python -m pip install --upgrade pip
-        pip install nuitka  # Install Nuitka
-
-    # Add any other dependencies your project needs
+        pip install nuitka
 
     - name: Compile with Nuitka
-      run: python -m nuitka main.py --show-progress --onefile --debug --enable-plugin=pyqt5  --include-data-file=./logo_beam_shaper.png=./icon/logo_beam_shaper.png
-
+      run: |
+        conda activate beamshapy-gui
+        python -m nuitka main.py --show-progress --onefile --debug --enable-plugin=pyqt5 --include-data-file=./logo_beam_shaper.png=./icon/logo_beam_shaper.png
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: Compiled-App
-        path: your_script.dist/your_script  # Adjust the path to the compiled binary
+        path: path/to/compiled-binary
