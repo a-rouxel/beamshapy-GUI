@@ -26,7 +26,7 @@ jobs:
     - name: Compile with Nuitka
       run: |
         conda activate beamshapy-gui
-        python -m nuitka main.py --show-progress --onefile --debug --enable-plugin=pyqt5 --include-data-file=./logo_beam_shaper.png=./icon/logo_beam_shaper.png
+        python -m nuitka main.py --show-progress --standalone --debug --enable-plugin=pyqt5 --include-data-file=./logo_beam_shaper.png=./icon/logo_beam_shaper.png
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
