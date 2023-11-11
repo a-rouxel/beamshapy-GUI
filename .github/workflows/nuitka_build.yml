@@ -18,7 +18,7 @@ jobs:
       with:
         auto-update-conda: true
         python-version: 3.10  # Specify the Python version
-        environment-file: environment.yml  # If you have an environment file
+        environment-file: env.yml  # If you have an environment file
         activate-environment: beamshapy-gui  # Name of the environment to activate
 
 
